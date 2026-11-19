@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Երազանքի տուն — Dream House Designer</title>
+  <style>
+    :root {
+      --bg-main: #fdf6ec;
+      --bg-panel: #ffffff;
+      --bg-soft: #f5ebe0;
+      --primary: #d97706;
+      --primary-hover: #b45309;
+      --accent: #059669;
+      --accent-hover: #047857;
+      --danger: #dc2626;
+      --text-main: #292524;
+      --text-muted: #78716c;
+      --border: #e7e5e4;
+      --shadow: 0 8px 24px rgba(41, 37, 36, 0.08);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg-main);
+      color: var(--text-main);
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Վերևի կառավարման վահանակ */
+    header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      z-index: 20;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: var(--primary);
+    }
+
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      background: var(--bg-soft);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: transform 0.12s, background 0.15s, opacity 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-soft);
+      color: var(--text-main);
+    }
+
+    .btn:active { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-accent:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-danger { background: #fee2e2; color: var(--danger); }
+    .btn-danger:hover:not(:disabled) { background: #fecaca; }
+
+    /* Հիմնական տարածք */
+    main {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .view-screen {
+      position: absolute;
+      inset: 0;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.94);
+    }
+
+    /* ================= 1. ՏԱՆ ԿՏՐՎԱԾՔԻ ՏԵՍՔ (CUTAWAY) ================= */
+    #house-overview {
+      overflow-y: auto;
+      padding: 20px;
+      align-items: center;
+      background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 45%, #dcfce7 45%, #bbf7d0 100%);
+    }
+
+    .overview-header {
+      text-align: center;
+      margin-bottom: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      max-width: 780px;
+      width: 100%;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #e7e5e4;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* Տան կտրվածք */
+    .house-cutaway-wrapper {
+      width: 100%;
+      max-width: 1080px;
+      margin: 10px auto 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .house-roof-cutaway {
+      width: 104%;
+      height: 56px;
+      background: linear-gradient(135deg, #9a3412, #7c2d12);
+      clip-path: polygon(6% 0%, 94% 0%, 100% 100%, 0% 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffedd5;
+      font-weight: 800;
+      letter-spacing: 1px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    .house-structure {
+      width: 100%;
+      background: #44403c;
+      border: 8px solid #57534e;
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+    }
+
+    .floor-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .floor-label {
+      color: #d6d3d1;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding-left: 4px;
+    }
+
+    .room-card {
+      background: #fafaf9;
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 138px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      position: relative;
+      border: 3px solid transparent;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      overflow: hidden;
+    }
+
+    .room-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: var(--primary);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+
+    .room-card.done {
+      border-color: var(--accent);
+      background: #f0fdf4;
+    }
+
+    .room-card.in-progress {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .room-mini-preview {
+      flex: 1;
+      border-radius: 6px;
+      margin: 6px 0;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 4px;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+
+    .room-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      align-self: flex-start;
+    }
+
+    .badge-empty { background: #e7e5e4; color: #57534e; }
+    .badge-progress { background: #fef3c7; color: #b45309; }
+    .badge-done { background: #d1fae5; color: #065f46; }
+
+    /* ================= 2. ՍԵՆՅԱԿԻ ԽՄԲԱԳՐԻՉ ================= */
+    #room-editor {
+      flex-direction: row;
+      background: #f5f5f4;
+    }
+
+    .sidebar-catalog {
+      width: 310px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    .cat-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      padding: 8px;
+      background: var(--bg-soft);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cat-tab {
+      padding: 7px 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: 0.15s;
+    }
+
+    .cat-tab.active {
+      background: var(--bg-panel);
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .catalog-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      align-content: start;
+    }
+
+    .catalog-card {
+      background: #fafaf9;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
+      cursor: grab;
+      transition: 0.15s;
+      position: relative;
+    }
+
+    .catalog-card:hover:not(.locked) {
+      border-color: var(--primary);
+      background: #fffbeb;
+      transform: translateY(-2px);
+    }
+
+    .catalog-card.locked {
+      opacity: 0.65;
+      cursor: pointer;
+      background: #f3f4f6;
+    }
+
+    .catalog-card .item-icon {
+      font-size: 1.8rem;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .catalog-card .item-name {
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .catalog-card .item-price {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .swatch-preview {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 2px solid rgba(0,0,0,0.15);
+    }
+
+    /* Կենտրոնական աշխատանքային գոտի */
+    .editor-workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .editor-top-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: var(--bg-panel);
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .quest-box {
+      font-size: 0.82rem;
+      background: #fef3c7;
+      color: #92400e;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quest-box.completed {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .stage-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background: #e7e5e4;
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    /* Սենյակի 2D բեմ */
+    #room-stage {
+      width: 100%;
+      max-width: 760px;
+      height: 100%;
+      max-height: 460px;
+      position: relative;
+      border-radius: 12px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.18);
+      overflow: hidden;
+      border: 6px solid #57534e;
+      background-color: #fef3c7;
+      transition: background 0.3s ease;
+    }
+
+    .room-wall-layer {
+      position: absolute;
+      inset: 0 0 28% 0;
+      transition: all 0.3s ease;
+    }
+
+    .room-baseboard {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 28%;
+      height: 10px;
+      background: rgba(0,0,0,0.18);
+      z-index: 1;
+    }
+
+    .room-floor-layer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 28%;
+      border-top: 2px solid rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+    }
+
+    /* Տեղադրված առարկա */
+    .placed-item {
+      position: absolute;
+      cursor: move;
+      touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+      transition: filter 0.15s;
+      animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .placed-item.selected {
+      outline: 2.5px dashed var(--primary);
+      outline-offset: 4px;
+      border-radius: 8px;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.22));
+    }
+
+    /* Առարկայի կառավարման վահանակ ներքևում */
+    .item-inspector {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-height: 52px;
+    }
+
+    .color-dots {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .color-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1.5px #a8a29e;
+      cursor: pointer;
+      transition: transform 0.12s;
+    }
+
+    .color-dot.active {
+      transform: scale(1.22);
+      box-shadow: 0 0 0 2.5px var(--primary);
+    }
+
+    /* ================= 3. ԴՐՍԻ ՀԱՏՎԱԾԻ ԽՄԲԱԳՐԻՉ (EXTERIOR) ================= */
+    #exterior-editor {
+      flex-direction: row;
+    }
+
+    .exterior-controls {
+      width: 320px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ext-group {
+      background: #fafaf9;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .ext-group h4 {
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ext-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ext-chip {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .ext-chip.active {
+      border-color: var(--primary);
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .exterior-canvas-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: #292524;
+      position: relative;
+    }
+
+    #exterior-canvas {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+      background: #87ceeb;
+    }
+
+    /* Մոդալ պատուհան (Աստղեր և Պարգևներ) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+    }
+
+    .stars-display {
+      font-size: 2.6rem;
+      margin: 12px 0;
+      letter-spacing: 6px;
+    }
+
+    /* Հեռախոսի ադապտացիա */
+    @media (max-width: 820px) {
+      #room-editor, #exterior-editor {
+        flex-direction: column-reverse;
+      }
+      .sidebar-catalog, .exterior-controls {
+        width: 100%;
+        height: 42%;
+        border-right: none;
+        border-top: 1px solid var(--border);
+      }
+      .floor-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .catalog-items {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Վերևի ընդհանուր վահանակ -->
+  <header>
+    <div class="brand">
+      <span>🏡 Երազանքի տուն</span>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-pill" title="Ձեր բյուջեն">💰 <span id="ui-money">50,000</span> ֏</div>
+      <div class="stat-pill" title="Վաստակած աստղեր">⭐ <span id="ui-stars">0</span></div>
+      <div class="stat-pill" title="Ավարտված սենյակներ">🏠 <span id="ui-progress">0/12</span></div>
+    </div>
+
+    <div class="stats-bar">
+      <button class="btn btn-accent" id="btn-go-exterior" disabled onclick="goToExterior()">
+        🌳 Անցնել դրսի հատվածին
+      </button>
+      <button class="btn" id="btn-sound" onclick="toggleSound()">🔊 Ձայն</button>
+      <button class="btn" onclick="saveGame(true)">💾 Պահպանել</button>
+      <button class="btn btn-danger" onclick="resetGame()">🔄 Նոր խաղ</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- 1. ՏԱՆ ԿՏՐՎԱԾՔԱՅԻՆ ՏԵՍՔ -->
+    <section id="house-overview" class="view-screen">
+      <div class="overview-header">
+        <h3>Ընտրեք սենյակը՝ դիզայնը սկսելու համար</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+          Ավարտեք առնվազն <strong>4 սենյակ</strong> (կամ բոլոր 12-ը)՝ տան դրսի հատվածն ու այգին բացելու համար։
+        </p>
+        <div class="progress-track">
+          <div class="progress-fill" id="overview-progress-bar"></div>
+        </div>
+      </div>
+
+      <div class="house-cutaway-wrapper">
+        <div class="house-roof-cutaway">▲ ԵՐԱԶԱՆՔԻ ԱՌԱՆՁՆԱՏՈՒՆ (ԿՏՐՎԱԾՔ) ▲</div>
+        <div class="house-structure" id="house-floors-container">
+          <!-- Գեներացվում է JS-ով -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. ՍԵՆՅԱԿԻ ԽՄԲԱԳՐԻՉ -->
+    <section id="room-editor" class="view-screen view-hidden">
+      <!-- Ձախ վահանակ՝ Կատալոգ -->
+      <aside class="sidebar-catalog">
+        <div class="cat-tabs" id="category-tabs">
+          <button class="cat-tab active" data-cat="walls">🎨 Պատեր</button>
+          <button class="cat-tab" data-cat="floors">🪵 Հատակ</button>
+          <button class="cat-tab" data-cat="furniture">🛋️ Կահույք</button>
+          <button class="cat-tab" data-cat="lighting">💡 Լույս</button>
+          <button class="cat-tab" data-cat="decor">🖼️ Դեկոր</button>
+          <button class="cat-tab" data-cat="appliances">📺 Տեխնիկա</button>
+        </div>
+        <div class="catalog-items" id="catalog-list"></div>
+      </aside>
+
+      <!-- Աշխատանքային գոտի -->
+      <div class="editor-workspace">
+        <div class="editor-top-strip">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn" onclick="backToHouse()">⬅️ Տուն</button>
+            <strong id="editor-room-title" style="font-size:1.05rem;">Հյուրասենյակ</strong>
+          </div>
+
+          <!-- Առաջադրանք -->
+          <div class="quest-box" id="room-quest-box">📋 Առաջադրանք...</div>
+
+          <!-- Արագ ոճավորում և Undo/Redo -->
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <select id="preset-style-select" class="btn" style="border:1px solid var(--border);">
+              <option value="">✨ Ավտո-ոճ (1 սեղմումով)</option>
+              <option value="modern">Մոդեռն (Modern)</option>
+              <option value="classic">Դասական (Classic)</option>
+              <option value="scandi">Սկանդինավյան</option>
+              <option value="loft">Լոֆթ (Loft)</option>
+            </select>
+            <button class="btn" onclick="applyPresetStyle()">Կիրառել</button>
+            <button class="btn" id="btn-undo" onclick="undo()" title="Հետ (Undo)">↩️</button>
+            <button class="btn" id="btn-redo" onclick="redo()" title="Առաջ (Redo)">↪️</button>
+            <button class="btn btn-accent" onclick="completeCurrentRoom()">✅ Ավարտել</button>
+          </div>
+        </div>
+
+        <!-- 2D Սենյակի բեմ -->
+        <div class="stage-container">
+          <div id="room-stage" ondragover="event.preventDefault()" ondrop="handleStageDrop(event)">
+            <div class="room-wall-layer" id="stage-wall"></div>
+            <div class="room-baseboard"></div>
+            <div class="room-floor-layer" id="stage-floor"></div>
+            <div id="stage-items-layer"></div>
+          </div>
+        </div>
+
+        <!-- Ընտրված առարկայի կարգավորումներ -->
+        <div class="item-inspector" id="item-inspector">
+          <span style="color:var(--text-muted); font-size:0.86rem;">
+            💡 Սեղմեք կամ քաշեք առարկան սենյակ՝ տեղադրելու համար։ Նշեք առարկան՝ գույնն ու չափը փոխելու համար։
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ԴՐՍԻ ՀԱՏՎԱԾԻ ԵՎ ԱՅԳՈՒ ԽՄԲԱԳՐԻՉ -->
+    <section id="exterior-editor" class="view-screen view-hidden">
+      <aside class="exterior-controls">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="btn" onclick="backToHouseFromExterior()">⬅️ Ներսի տեսք</button>
+          <button class="btn btn-primary" onclick="downloadExteriorPNG()">📸 Ներբեռնել PNG</button>
+        </div>
+
+        <div class="ext-group">
+          <h4>🕒 Օրվա ժամանակ և Եղանակ</h4>
+          <div class="ext-options" style="margin-bottom:8px;">
+            <button class="ext-chip active" onclick="setExtProp('time', 'day', this)">☀️ Ցերեկ</button>
+            <button class="ext-chip" onclick="setExtProp('time', 'evening', this)">🌅 Երեկո</button>
+            <button class="ext-chip" onclick="setExtProp('time', 'night', this)">🌙 Գիշեր</button>
+          </div>
+          <div class="ext-options">
+            <button class="ext-chip active" onclick="setExtProp('weather', 'clear', this)">🌤️ Պարզ</button>
+            <button class="ext-chip" onclick="setExtProp('weather', 'rain', this)">🌧️ Անձրև</button>
+            <button class="ext-chip" onclick="setExtProp('weather', 'snow', this)">❄️ Ձյուն</button>
+          </div>
+        </div>
+
+        <div class="ext-group">
+          <h4>🏠 Ճակատ և Կտուր</h4>
+          <div class="ext-options" style="margin-bottom:8px;">
+            <button class="ext-chip active" onclick="setExtProp('facadeColor', '#fef3c7', this)">Կրեմագույն</button>
+            <button class="ext-chip" onclick="setExtProp('facadeColor', '#fca5a5', this)">Տուֆ (Վարդագույն)</button>
+            <button class="ext-chip" onclick="setExtProp('facadeColor', '#e2e8f0', this)">Սպիտակ քար</button>
+            <button class="ext-chip" onclick="setExtProp('facadeColor', '#cbd5e1', this)">Մոխրագույն</button>
+          </div>
+          <div class="ext-options">
+            <button class="ext-chip active" onclick="setExtProp('roofColor', '#9a3412', this)">Կղմինդր</button>
+            <button class="ext-chip" onclick="setExtProp('roofColor', '#1e293b', this)">Մուգ գրաֆիտ</button>
+            <button class="ext-chip" onclick="setExtProp('roofColor', '#166534', this)">Կանաչ կտուր</button>
+          </div>
+        </div>
+
+        <div class="ext-group">
+          <h4>🚪 Դուռ, Պատուհաններ և Պատշգամբ</h4>
+          <div class="ext-options">
+            <button class="ext-chip active" onclick="toggleExtBool('balcony', this)">🏢 Պատշգամբ</button>
+            <button class="ext-chip active" onclick="toggleExtBool('garage', this)">🚗 Ավտոտնակ</button>
+            <button class="ext-chip active" onclick="toggleExtBool('fence', this)">🚧 Ցանկապատ և Դարպաս</button>
+            <button class="ext-chip active" onclick="toggleExtBool('lights', this)">🏮 Դրսի լույսեր</button>
+          </div>
+        </div>
+
+        <div class="ext-group">
+          <h4>🌳 Բակ, Այգի և Ժամանց</h4>
+          <div class="ext-options">
+            <button class="ext-chip active" onclick="toggleExtBool('trees', this)">🌲 Ծառեր</button>
+            <button class="ext-chip active" onclick="toggleExtBool('flowers', this)">🌷 Ծաղկանոց</button>
+            <button class="ext-chip active" onclick="toggleExtBool('path', this)">🛤️ Ճանապարհ</button>
+            <button class="ext-chip" onclick="toggleExtBool('pool', this)">🏊 Լողավազան</button>
+            <button class="ext-chip" onclick="toggleExtBool('fountain', this)">⛲ Ցայտաղբյուր</button>
+            <button class="ext-chip" onclick="toggleExtBool('bench', this)">🪑 Նստարան</button>
+            <button class="ext-chip" onclick="toggleExtBool('playground', this)">🛝 Խաղահրապարակ</button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="exterior-canvas-wrap">
+        <canvas id="exterior-canvas" width="920" height="560"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <!-- Սենյակի ավարտի մոդալ -->
+  <div class="modal-backdrop" id="completion-modal">
+    <div class="modal-card">
+      <h2 id="modal-title">Սենյակն ավարտված է!</h2>
+      <div class="stars-display" id="modal-stars">⭐⭐⭐</div>
+      <p id="modal-feedback" style="color:var(--text-muted); margin-bottom:14px;"></p>
+      <div class="stat-pill" style="justify-content:center; margin-bottom:18px;">
+        🎁 Պարգև՝ +<span id="modal-reward">2500</span> ֏
+      </div>
+      <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="closeModalAndReturn()">
+        Շարունակել
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================================
+       1. ՏՎՅԱԼՆԵՐԻ ԿԱՌՈՒՑՎԱԾՔ (ՍԵՆՅԱԿՆԵՐ ԵՎ ԱՌԱՐԿԱՆԵՐ)
+       ============================================================================ */
+
+    // 12 սենյակների ցանկը՝ ըստ հարկերի
+    const ROOMS_DATA = [
+      // 2-րդ հարկ
+      {
+        id: "master_bed",
+        name: "Գլխավոր ննջասենյակ",
+        floor: 2,
+        icon: "🛏️",
+        quest: { text: "Տեղադրեք առնվազն 1 մահճակալ, 2 լամպ և 1 բույս", req: { bed: 1, lamp: 2, plant: 1 } }
+      },
+      {
+        id: "bed_2",
+        name: "Ննջասենյակ №2",
+        floor: 2,
+        icon: "🛌",
+        quest: { text: "Տեղադրեք 1 մահճակալ, 1 պահարան և 1 գորգ", req: { bed: 1, wardrobe: 1, rug: 1 } }
+      },
+      {
+        id: "kids_room",
+        name: "Մանկական սենյակ",
+        floor: 2,
+        icon: "🧸",
+        quest: { text: "Տեղադրեք 1 մահճակալ, 1 գրասեղան և 1 դեկոր", req: { bed: 1, desk: 1, decor: 1 } }
+      },
+      {
+        id: "bathroom",
+        name: "Լոգարան",
+        floor: 2,
+        icon: "🛁",
+        quest: { text: "Տեղադրեք 1 լվացքի մեքենա, 1 հայելի/նկար և 1 լամպ", req: { washer: 1, art: 1, lamp: 1 } }
+      },
+
+      // 1-ին հարկ
+      {
+        id: "living_room",
+        name: "Հյուրասենյակ",
+        floor: 1,
+        icon: "🛋️",
+        quest: { text: "Տեղադրեք 1 բազմոց, 1 հեռուստացույց և 1 ջահ", req: { sofa: 1, tv: 1, chandelier: 1 } }
+      },
+      {
+        id: "kitchen",
+        name: "Խոհանոց",
+        floor: 1,
+        icon: "🍳",
+        quest: { text: "Տեղադրեք 1 սառնարան, 1 վառարան և 1 սեղան", req: { fridge: 1, stove: 1, table: 1 } }
+      },
+      {
+        id: "dining_room",
+        name: "Ճաշասենյակ",
+        floor: 1,
+        icon: "🍽️",
+        quest: { text: "Տեղադրեք 1 սեղան, 2 աթոռ և 1 ջահ", req: { table: 1, chair: 2, chandelier: 1 } }
+      },
+      {
+        id: "hallway",
+        name: "Միջանցք",
+        floor: 1,
+        icon: "🚪",
+        quest: { text: "Տեղադրեք 1 պահարան, 1 բույս և 1 գորգ", req: { wardrobe: 1, plant: 1, rug: 1 } }
+      },
+
+      // Նկուղային / Օժանդակ հարկ
+      {
+        id: "office",
+        name: "Աշխատասենյակ",
+        floor: 0,
+        icon: "💻",
+        quest: { text: "Տեղադրեք 1 գրասեղան, 1 աթոռ և 1 գրադարակ", req: { desk: 1, chair: 1, shelf: 1 } }
+      },
+      {
+        id: "library",
+        name: "Գրադարան",
+        floor: 0,
+        icon: "📚",
+        quest: { text: "Տեղադրեք 2 գրադարակ, 1 բազմոց և 1 հատակի լամպ", req: { shelf: 2, sofa: 1, floor_lamp: 1 } }
+      },
+      {
+        id: "cinema",
+        name: "Նկուղ / Կինոսրահ",
+        floor: 0,
+        icon: "🎬",
+        quest: { text: "Տեղադրեք 1 մեծ հեռուստացույց, 1 բազմոց և 1 գորգ", req: { tv: 1, sofa: 1, rug: 1 } }
+      },
+      {
+        id: "wc",
+        name: "Զուգարան և Լվացքատուն",
+        floor: 0,
+        icon: "🧼",
+        quest: { text: "Տեղադրեք 1 լվացքի մեքենա, 1 պահարան և 1 լամպ", req: { washer: 1, wardrobe: 1, lamp: 1 } }
+      }
+    ];
+
+    // Գունային պալիտրա (առնվազն 5 գույն յուրաքանչյուր առարկայի համար)
+    const COLOR_PALETTE = [
+      { name: "Կաղնի", hex: "#b45309" },
+      { name: "Կրեմագույն", hex: "#f5f5f4" },
+      { name: "Անտրացիտ", hex: "#334155" },
+      { name: "Զմրուխտ", hex: "#047857" },
+      { name: "Տերակոտա", hex: "#c2410c" },
+      { name: "Երկնագույն", hex: "#0284c7" },
+      { name: "Մանուշակագույն", hex: "#7e22ce" }
+    ];
+
+    // Կատալոգի առարկաներ՝ ըստ կատեգորիաների
+    const CATALOG = {
+      walls: [
+        { id: "w_cream", name: "Տաք կրեմագույն", price: 400, starsReq: 0, css: "#fef3c7" },
+        { id: "w_sage", name: "Ձիթապտղի կանաչ", price: 500, starsReq: 0, css: "#d1fae5" },
+        { id: "w_sky", name: "Երկնագույն", price: 500, starsReq: 0, css: "#e0f2fe" },
+        { id: "w_stripes", name: "Դասական գծավոր", price: 800, starsReq: 2, css: "repeating-linear-gradient(90deg, #fce7f3, #fce7f3 18px, #fbcfe8 18px, #fbcfe8 36px)" },
+        { id: "w_brick", name: "Լոֆթ աղյուս", price: 1100, starsReq: 4, css: "repeating-linear-gradient(0deg, #9a3412, #9a3412 14px, #7c2d12 14px, #7c2d12 16px)" },
+        { id: "w_woodpanel", name: "Փայտե վահանակ", price: 1300, starsReq: 6, css: "repeating-linear-gradient(90deg, #92400e, #92400e 24px, #78350f 24px, #78350f 26px)" }
+      ],
+      floors: [
+        { id: "f_parquet", name: "Կաղնե պարկետ", price: 600, starsReq: 0, css: "repeating-linear-gradient(90deg, #d97706, #d97706 32px, #b45309 32px, #b45309 34px)" },
+        { id: "f_tile", name: "Կերամիկական սալիկ", price: 700, starsReq: 0, css: "repeating-conic-gradient(#e7e5e4 0% 25%, #d6d3d1 0% 50%) 50% / 28px 28px" },
+        { id: "f_carpet", name: "Փափուկ գորգածածկ", price: 850, starsReq: 2, css: "#cbd5e1" },
+        { id: "f_marble", name: "Սպիտակ մարմար", price: 1400, starsReq: 5, css: "linear-gradient(135deg, #f8fafc 25%, #e2e8f0 50%, #f8fafc 75%)" }
+      ],
+      furniture: [
+        { id: "sofa", tag: "sofa", name: "Բազմոց", icon: "🛋️", price: 2400, starsReq: 0, w: 150, h: 75, defaultColor: "#047857" },
+        { id: "bed", tag: "bed", name: "Երկտեղանի մահճակալ", icon: "🛏️", price: 3200, starsReq: 0, w: 170, h: 90, defaultColor: "#0284c7" },
+        { id: "table", tag: "table", name: "Ճաշասեղան", icon: "🪑", price: 1600, starsReq: 0, w: 120, h: 70, defaultColor: "#b45309" },
+        { id: "chair", tag: "chair", name: "Բազկաթոռ / Աթոռ", icon: "💺", price: 750, starsReq: 0, w: 56, h: 64, defaultColor: "#c2410c" },
+        { id: "wardrobe", tag: "wardrobe", name: "Զգեստապահարան", icon: "🚪", price: 2600, starsReq: 0, w: 100, h: 155, defaultColor: "#b45309" },
+        { id: "shelf", tag: "shelf", name: "Գրադարակ", icon: "📚", price: 1500, starsReq: 0, w: 90, h: 145, defaultColor: "#78350f" },
+        { id: "desk", tag: "desk", name: "Գրասեղան", icon: "🖥️", price: 1800, starsReq: 2, w: 130, h: 72, defaultColor: "#334155" }
+      ],
+      lighting: [
+        { id: "chandelier", tag: "chandelier", name: "Առաստաղի ջահ", icon: "👑", price: 1400, starsReq: 0, w: 80, h: 65, defaultColor: "#eab308", isCeiling: true },
+        { id: "lamp", tag: "lamp", name: "Սեղանի լամպ", icon: "🛋️", price: 650, starsReq: 0, w: 46, h: 56, defaultColor: "#f5f5f4" },
+        { id: "floor_lamp", tag: "floor_lamp", name: "Հատակի լամպ", icon: "💡", price: 950, starsReq: 0, w: 50, h: 130, defaultColor: "#334155" },
+        { id: "window_item", tag: "window", name: "Լուսամուտ", icon: "🪟", price: 1200, starsReq: 3, w: 110, h: 105, defaultColor: "#e0f2fe", isWall: true }
+      ],
+      decor: [
+        { id: "art", tag: "art", name: "Պատի նկար", icon: "🖼️", price: 700, starsReq: 0, w: 80, h: 65, defaultColor: "#c2410c", isWall: true },
+        { id: "plant", tag: "plant", name: "Սենյակային բույս", icon: "🪴", price: 600, starsReq: 0, w: 55, h: 85, defaultColor: "#047857" },
+        { id: "rug", tag: "rug", name: "Հատակի գորգ", icon: "🧶", price: 900, starsReq: 0, w: 160, h: 42, defaultColor: "#7e22ce" },
+        { id: "curtain", tag: "curtain", name: "Վարագույր", icon: "🎭", price: 850, starsReq: 0, w: 115, h: 120, defaultColor: "#c2410c", isWall: true },
+        { id: "clock", tag: "decor", name: "Պատի ժամացույց", icon: "🕰️", price: 550, starsReq: 0, w: 50, h: 50, defaultColor: "#334155", isWall: true },
+        { id: "vase", tag: "decor", name: "Ծաղկաման", icon: "🏺", price: 450, starsReq: 2, w: 42, h: 52, defaultColor: "#0284c7" },
+        { id: "books", tag: "decor", name: "Գրքերի հավաքածու", icon: "📖", price: 400, starsReq: 0, w: 52, h: 40, defaultColor: "#b45309" }
+      ],
+      appliances: [
+        { id: "tv", tag: "tv", name: "Smart Հեռուստացույց", icon: "📺", price: 2800, starsReq: 0, w: 125, h: 75, defaultColor: "#1e293b" },
+        { id: "fridge", tag: "fridge", name: "Սառնարան", icon: "🧊", price: 3100, starsReq: 0, w: 82, h: 150, defaultColor: "#e2e8f0" },
+        { id: "stove", tag: "stove", name: "Գազօջախ / Վառարան", icon: "🍳", price: 2500, starsReq: 0, w: 85, h: 82, defaultColor: "#334155" },
+        { id: "washer", tag: "washer", name: "Լվացքի մեքենա", icon: "🧺", price: 2300, starsReq: 0, w: 74, h: 82, defaultColor: "#f8fafc" }
+      ]
+    };
+
+    /* ============================================================================
+       2. ԽԱՂԻ ՎԻՃԱԿ (STATE) ԵՎ LOCALSTORAGE
+       ============================================================================ */
+    const STORAGE_KEY = "dream_house_hy_save_v1";
+
+    let gameState = {
+      money: 50000,
+      stars: 0,
+      sound: true,
+      rooms: {}, // { [roomId]: { wall, floor, items: [], status: 'empty'|'progress'|'done', starsEarned: 0 } }
+      exterior: {
+        time: "day",
+        weather: "clear",
+        facadeColor: "#fef3c7",
+        roofColor: "#9a3412",
+        balcony: true,
+        garage: true,
+        fence: true,
+        lights: true,
+        trees: true,
+        flowers: true,
+        path: true,
+        pool: false,
+        fountain: false,
+        bench: false,
+        playground: false
+      }
+    };
+
+    let currentRoomId = null;
+    let currentCategory = "walls";
+    let selectedItemUid = null;
+    let historyStack = [];
+    let redoStack = [];
+
+    // Սկզբնական վիճակի ստեղծում
+    function initDefaultRooms() {
+      ROOMS_DATA.forEach(r => {
+        if (!gameState.rooms[r.id]) {
+          gameState.rooms[r.id] = {
+            wall: "#fef3c7",
+            floor: "repeating-linear-gradient(90deg, #d97706, #d97706 32px, #b45309 32px, #b45309 34px)",
+            items: [],
+            status: "empty",
+            starsEarned: 0
+          };
+        }
+      });
+    }
+
+    function loadGame() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          gameState = { ...gameState, ...parsed };
+        }
+      } catch (e) {
+        console.warn("Չհաջողվեց բեռնել պահպանված խաղը", e);
+      }
+      initDefaultRooms();
+    }
+
+    function saveGame(notify = false) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+        if (notify) {
+          playSound("pop");
+          alert("✅ Խաղի առաջընթացը հաջողությամբ պահպանվեց։");
+        }
+      } catch (e) {}
+    }
+
+    function resetGame() {
+      if (!confirm("Վստա՞հ եք, որ ուզում եք սկսել նոր խաղ։ Ամբողջ առաջընթացը կզրոյանա։")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+
+    /* ============================================================================
+       3. ՁԱՅՆԱՅԻՆ ԷՖԵԿՏՆԵՐ (WEB AUDIO API — ԱՌԱՆՑ ԱՐՏԱՔԻՆ ՖԱՅԼԵՐԻ)
+       ============================================================================ */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      if (!gameState.sound) return;
+      if (audioCtx.state === "suspended") audioCtx.resume();
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === "pop") {
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(420, now);
+        osc.frequency.exponentialRampToValueAtTime(680, now + 0.09);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      } else if (type === "delete") {
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(280, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.14);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+        osc.start(now);
+        osc.stop(now + 0.14);
+      } else if (type === "win") {
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((freq, i) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = "triangle";
+          o.frequency.value = freq;
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          g.gain.setValueAtTime(0.14, now + i * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.35);
+          o.start(now + i * 0.1);
+          o.stop(now + i * 0.1 + 0.35);
+        });
+      }
+    }
+
+    function toggleSound() {
+      gameState.sound = !gameState.sound;
+      document.getElementById("btn-sound").textContent = gameState.sound ? "🔊 Ձայն" : "🔇 Անձայն";
+    }
+
+    /* ============================================================================
+       4. ՏԱՆ ԿՏՐՎԱԾՔԻ ՏԵՍՔ (CUTAWAY VIEW)
+       ============================================================================ */
+    function updateTopStats() {
+      document.getElementById("ui-money").textContent = gameState.money.toLocaleString();
+      document.getElementById("ui-stars").textContent = gameState.stars;
+
+      const doneCount = Object.values(gameState.rooms).filter(r => r.status === "done").length;
+      const total = ROOMS_DATA.length;
+      document.getElementById("ui-progress").textContent = `${doneCount}/${total}`;
+      document.getElementById("overview-progress-bar").style.width = `${(doneCount / total) * 100}%`;
+
+      // Դրսի հատվածը բացվում է առնվազն 4 սենյակ ավարտելուց հետո
+      const extBtn = document.getElementById("btn-go-exterior");
+      extBtn.disabled = doneCount < 4;
+      if (doneCount >= 4) {
+        extBtn.title = "Դրսի հատվածը բաց է!";
+      } else {
+        extBtn.title = `Ավարտեք ևս ${4 - doneCount} սենյակ`;
+      }
+    }
+
+    function renderHouseOverview() {
+      updateTopStats();
+      const container = document.getElementById("house-floors-container");
+      container.innerHTML = "";
+
+      const floors = [
+        { level: 2, title: "2-րդ հարկ — Ննջասենյակներ և Լոգարան" },
+        { level: 1, title: "1-ին հարկ — Հյուրասենյակ և Խոհանոց" },
+        { level: 0, title: "Նկուղային հարկ — Աշխատանք և Ժամանց" }
+      ];
+
+      floors.forEach(fl => {
+        const label = document.createElement("div");
+        label.className = "floor-label";
+        label.textContent = fl.title;
+        container.appendChild(label);
+
+        const row = document.createElement("div");
+        row.className = "floor-row";
+
+        ROOMS_DATA.filter(r => r.floor === fl.level).forEach(roomMeta => {
+          const state = gameState.rooms[roomMeta.id];
+          const card = document.createElement("div");
+          card.className = `room-card ${state.status === "done" ? "done" : state.status === "progress" ? "in-progress" : ""}`;
+          card.onclick = () => openRoomEditor(roomMeta.id);
+
+          let statusText = "դատարկ";
+          let badgeClass = "badge-empty";
+          if (state.status === "progress") {
+            statusText = "ընթացքում";
+            badgeClass = "badge-progress";
+          } else if (state.status === "done") {
+            statusText = `ավարտված ✓ (${"⭐".repeat(state.starsEarned)})`;
+            badgeClass = "badge-done";
+          }
+
+          const miniIcons = state.items.slice(0, 6).map(it => {
+            const def = findItemDef(it.defId);
+            return `<span style="font-size:1.1rem;">${def ? def.icon : "📦"}</span>`;
+          }).join("");
+
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:0.88rem;">${roomMeta.icon} ${roomMeta.name}</strong>
+            </div>
+            <div class="room-mini-preview" style="background:${state.wall};">
+              ${miniIcons || '<span style="font-size:0.75rem; color:#78716c;">Սեղմեք՝ ձևավորելու համար</span>'}
+            </div>
+            <span class="room-badge ${badgeClass}">${statusText}</span>
+          `;
+          row.appendChild(card);
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    /* ============================================================================
+       5. ՍԵՆՅԱԿԻ ԽՄԲԱԳՐԻՉ (2D STAGE, DRAG & DROP, SVG GRAPHICS)
+       ============================================================================ */
+    function findItemDef(defId) {
+      for (const cat of Object.keys(CATALOG)) {
+        const found = CATALOG[cat].find(i => i.id === defId);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    function openRoomEditor(roomId) {
+      playSound("pop");
+      currentRoomId = roomId;
+      selectedItemUid = null;
+      historyStack = [];
+      redoStack = [];
+
+      const meta = ROOMS_DATA.find(r => r.id === roomId);
+      document.getElementById("editor-room-title").textContent = `${meta.icon} ${meta.name}`;
+
+      document.getElementById("house-overview").classList.add("view-hidden");
+      document.getElementById("room-editor").classList.remove("view-hidden");
+
+      renderCatalog();
+      renderStage();
+      renderInspector();
+    }
+
+    function backToHouse() {
+      playSound("pop");
+      const rState = gameState.rooms[currentRoomId];
+      if (rState.items.length > 0 && rState.status === "empty") {
+        rState.status = "progress";
+      }
+      saveGame();
+      document.getElementById("room-editor").classList.add("view-hidden");
+      document.getElementById("house-overview").classList.remove("view-hidden");
+      renderHouseOverview();
+    }
+
+    // Կատեգորիաների անցում
+    document.getElementById("category-tabs").addEventListener("click", (e) => {
+      if (!e.target.classList.contains("cat-tab")) return;
+      document.querySelectorAll(".cat-tab").forEach(b => b.classList.remove("active"));
+      e.target.classList.add("active");
+      currentCategory = e.target.dataset.cat;
+      renderCatalog();
+    });
+
+    function renderCatalog() {
+      const list = document.getElementById("catalog-list");
+      list.innerHTML = "";
+      const items = CATALOG[currentCategory] || [];
+
+      items.forEach(item => {
+        const isLocked = gameState.stars < item.starsReq;
+        const card = document.createElement("div");
+        card.className = `catalog-card ${isLocked ? "locked" : ""}`;
+
+        if (!isLocked && currentCategory !== "walls" && currentCategory !== "floors") {
+          card.draggable = true;
+          card.ondragstart = (e) => {
+            e.dataTransfer.setData("text/plain", item.id);
+          };
+        }
+
+        card.onclick = () => {
+          if (isLocked) {
+            alert(`🔒 Այս առարկան բացելու համար անհրաժեշտ է ${item.starsReq} աստղ (դուք ունեք ${gameState.stars} ⭐)։`);
+            return;
+          }
+          handleCatalogSelect(item);
+        };
+
+        let previewHTML = `<div class="item-icon">${item.icon}</div>`;
+        if (currentCategory === "walls" || currentCategory === "floors") {
+          previewHTML = `<div class="swatch-preview" style="background:${item.css};"></div>`;
+        }
+
+        card.innerHTML = `
+          ${previewHTML}
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">
+            ${isLocked ? `🔒 ${item.starsReq} ⭐` : `${item.price.toLocaleString()} ֏`}
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function pushHistory() {
+      const rState = gameState.rooms[currentRoomId];
+      historyStack.push(JSON.stringify({
+        money: gameState.money,
+        wall: rState.wall,
+        floor: rState.floor,
+        items: rState.items
+      }));
+      if (historyStack.length > 25) historyStack.shift();
+      redoStack = [];
+    }
+
+    function undo() {
+      if (!historyStack.length) return;
+      const rState = gameState.rooms[currentRoomId];
+      redoStack.push(JSON.stringify({
+        money: gameState.money,
+        wall: rState.wall,
+        floor: rState.floor,
+        items: rState.items
+      }));
+      const prev = JSON.parse(historyStack.pop());
+      gameState.money = prev.money;
+      rState.wall = prev.wall;
+      rState.floor = prev.floor;
+      rState.items = prev.items;
+      selectedItemUid = null;
+      updateTopStats();
+      renderStage();
+      renderInspector();
+    }
+
+    function redo() {
+      if (!redoStack.length) return;
+      const rState = gameState.rooms[currentRoomId];
+      historyStack.push(JSON.stringify({
+        money: gameState.money,
+        wall: rState.wall,
+        floor: rState.floor,
+        items: rState.items
+      }));
+      const next = JSON.parse(redoStack.pop());
+      gameState.money = next.money;
+      rState.wall = next.wall;
+      rState.floor = next.floor;
+      rState.items = next.items;
+      selectedItemUid = null;
+      updateTopStats();
+      renderStage();
+      renderInspector();
+    }
+
+    function handleCatalogSelect(item, dropX = null, dropY = null) {
+      if (gameState.money < item.price) {
+        alert("💸 Բյուջեն չի բավականացնում։ Ավարտեք այլ սենյակներ՝ գումար վաստակելու համար։");
+        return;
+      }
+
+      pushHistory();
+      const rState = gameState.rooms[currentRoomId];
+      gameState.money -= item.price;
+
+      if (currentCategory === "walls") {
+        rState.wall = item.css;
+        playSound("pop");
+        updateTopStats();
+        renderStage();
+        return;
+      }
+
+      if (currentCategory === "floors") {
+        rState.floor = item.css;
+        playSound("pop");
+        updateTopStats();
+        renderStage();
+        return;
+      }
+
+      // Առարկայի տեղադրում բեմում
+      const stage = document.getElementById("room-stage");
+      const sw = stage.clientWidth || 680;
+      const sh = stage.clientHeight || 420;
+
+      const defaultY = item.isCeiling ? 10 : item.isWall ? sh * 0.22 : sh * 0.68 - item.h * 0.5;
+      const newItem = {
+        uid: "it_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+        defId: item.id,
+        x: dropX !== null ? Math.max(0, Math.min(sw - item.w, dropX - item.w / 2)) : (sw - item.w) / 2,
+        y: dropY !== null ? Math.max(0, Math.min(sh - item.h, dropY - item.h / 2)) : defaultY,
+        color: item.defaultColor,
+        scale: 1,
+        flip: false
+      };
+
+      rState.items.push(newItem);
+      if (rState.status === "empty") rState.status = "progress";
+      selectedItemUid = newItem.uid;
+
+      playSound("pop");
+      updateTopStats();
+      renderStage();
+      renderInspector();
+    }
+
+    function handleStageDrop(e) {
+      e.preventDefault();
+      const defId = e.dataTransfer.getData("text/plain");
+      if (!defId) return;
+      const item = findItemDef(defId);
+      if (!item) return;
+      const rect = document.getElementById("room-stage").getBoundingClientRect();
+      handleCatalogSelect(item, e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    // SVG վեկտորային գրաֆիկա առարկաների համար (գույնի փոփոխման հնարավորությամբ)
+    function getItemSVG(defId, color) {
+      switch (defId) {
+        case "sofa":
+          return `<svg viewBox="0 0 160 80" width="100%" height="100%">
+            <rect x="15" y="15" width="130" height="45" rx="12" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <rect x="5" y="32" width="22" height="36" rx="8" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <rect x="133" y="32" width="22" height="36" rx="8" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <rect x="22" y="45" width="116" height="22" rx="6" fill="rgba(255,255,255,0.22)"/>
+            <rect x="20" y="68" width="10" height="10" fill="#44403c"/>
+            <rect x="130" y="68" width="10" height="10" fill="#44403c"/>
+          </svg>`;
+        case "bed":
+          return `<svg viewBox="0 0 180 95" width="100%" height="100%">
+            <rect x="10" y="10" width="160" height="55" rx="8" fill="#78350f" stroke="#1c1917" stroke-width="3"/>
+            <rect x="16" y="38" width="148" height="45" rx="6" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <rect x="24" y="24" width="56" height="22" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+            <rect x="100" y="24" width="56" height="22" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+            <rect x="16" y="83" width="12" height="10" fill="#44403c"/>
+            <rect x="152" y="83" width="12" height="10" fill="#44403c"/>
+          </svg>`;
+        case "table":
+          return `<svg viewBox="0 0 130 75" width="100%" height="100%">
+            <rect x="8" y="12" width="114" height="14" rx="5" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <rect x="20" y="26" width="10" height="45" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+            <rect x="100" y="26" width="10" height="45" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+          </svg>`;
+        case "chair":
+          return `<svg viewBox="0 0 60 70" width="100%" height="100%">
+            <rect x="12" y="8" width="36" height="30" rx="6" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+            <rect x="10" y="36" width="40" height="12" rx="4" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+            <rect x="14" y="48" width="7" height="18" fill="#44403c"/>
+            <rect x="39" y="48" width="7" height="18" fill="#44403c"/>
+          </svg>`;
+        case "wardrobe":
+          return `<svg viewBox="0 0 100 160" width="100%" height="100%">
+            <rect x="8" y="6" width="84" height="148" rx="6" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <line x1="50" y1="6" x2="50" y2="154" stroke="#1c1917" stroke-width="2.5"/>
+            <circle cx="42" cy="82" r="3.5" fill="#fef08a"/>
+            <circle cx="58" cy="82" r="3.5" fill="#fef08a"/>
+          </svg>`;
+        case "shelf":
+          return `<svg viewBox="0 0 90 150" width="100%" height="100%">
+            <rect x="6" y="6" width="78" height="138" rx="4" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <rect x="12" y="14" width="66" height="34" fill="#fef3c7"/>
+            <rect x="12" y="56" width="66" height="34" fill="#fef3c7"/>
+            <rect x="12" y="98" width="66" height="36" fill="#fef3c7"/>
+            <rect x="16" y="24" width="10" height="24" fill="#dc2626"/>
+            <rect x="28" y="20" width="10" height="28" fill="#2563eb"/>
+            <rect x="42" y="64" width="12" height="26" fill="#059669"/>
+            <rect x="56" y="68" width="10" height="22" fill="#d97706"/>
+          </svg>`;
+        case "desk":
+          return `<svg viewBox="0 0 140 75" width="100%" height="100%">
+            <rect x="6" y="24" width="128" height="12" rx="4" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+            <rect x="14" y="36" width="34" height="35" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+            <rect x="116" y="36" width="10" height="35" fill="#44403c"/>
+            <rect x="54" y="4" width="32" height="18" rx="2" fill="#1e293b"/>
+            <rect x="67" y="22" width="6" height="4" fill="#64748b"/>
+          </svg>`;
+        case "tv":
+          return `<svg viewBox="0 0 130 80" width="100%" height="100%">
+            <rect x="8" y="6" width="114" height="62" rx="6" fill="#0f172a" stroke="${color}" stroke-width="4"/>
+            <polygon points="56,28 56,48 76,38" fill="#38bdf8" opacity="0.85"/>
+            <rect x="52" y="68" width="26" height="8" fill="#475569"/>
+          </svg>`;
+        case "fridge":
+          return `<svg viewBox="0 0 85 155" width="100%" height="100%">
+            <rect x="8" y="6" width="69" height="143" rx="10" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <line x1="8" y1="58" x2="77" y2="58" stroke="#1c1917" stroke-width="2.5"/>
+            <rect x="64" y="26" width="4" height="20" rx="2" fill="#64748b"/>
+            <rect x="64" y="72" width="4" height="32" rx="2" fill="#64748b"/>
+          </svg>`;
+        case "stove":
+          return `<svg viewBox="0 0 85 85" width="100%" height="100%">
+            <rect x="8" y="10" width="69" height="69" rx="6" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <rect x="18" y="34" width="49" height="34" rx="4" fill="#1e293b"/>
+            <circle cx="24" cy="22" r="4" fill="#ef4444"/>
+            <circle cx="42" cy="22" r="4" fill="#f59e0b"/>
+            <circle cx="60" cy="22" r="4" fill="#f59e0b"/>
+          </svg>`;
+        case "washer":
+          return `<svg viewBox="0 0 80 85" width="100%" height="100%">
+            <rect x="8" y="8" width="64" height="72" rx="8" fill="${color}" stroke="#1c1917" stroke-width="3"/>
+            <circle cx="40" cy="48" r="18" fill="#bae6fd" stroke="#475569" stroke-width="4"/>
+            <rect x="16" y="15" width="20" height="6" rx="2" fill="#94a3b8"/>
+          </svg>`;
+        case "chandelier":
+          return `<svg viewBox="0 0 85 70" width="100%" height="100%">
+            <line x1="42" y1="0" x2="42" y2="25" stroke="#1c1917" stroke-width="3"/>
+            <path d="M12 45 Q42 15 72 45 Z" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+            <circle cx="22" cy="50" r="6" fill="#fef08a"/>
+            <circle cx="42" cy="52" r="7" fill="#fef08a"/>
+            <circle cx="62" cy="50" r="6" fill="#fef08a"/>
+          </svg>`;
+        case "floor_lamp":
+          return `<svg viewBox="0 0 55 135" width="100%" height="100%">
+            <polygon points="12,35 43,35 36,8 19,8" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+            <rect x="25" y="35" width="5" height="90" fill="#44403c"/>
+            <ellipse cx="27.5" cy="126" rx="16" ry="5" fill="#1c1917"/>
+          </svg>`;
+        case "plant":
+          return `<svg viewBox="0 0 60 90" width="100%" height="100%">
+            <polygon points="16,56 44,56 39,86 21,86" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+            <ellipse cx="30" cy="36" rx="18" ry="22" fill="#16a34a" stroke="#14532d" stroke-width="2"/>
+            <ellipse cx="18" cy="42" rx="11" ry="14" fill="#22c55e"/>
+            <ellipse cx="42" cy="42" rx="11" ry="14" fill="#15803d"/>
+          </svg>`;
+        case "rug":
+          return `<svg viewBox="0 0 170 45" width="100%" height="100%">
+            <ellipse cx="85" cy="22.5" rx="80" ry="18" fill="${color}" stroke="#1c1917" stroke-width="2.5"/>
+            <ellipse cx="85" cy="22.5" rx="64" ry="12" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" stroke-dasharray="6 4"/>
+          </svg>`;
+        case "art":
+          return `<svg viewBox="0 0 85 70" width="100%" height="100%">
+            <rect x="6" y="6" width="73" height="58" rx="4" fill="#fef3c7" stroke="${color}" stroke-width="6"/>
+            <circle cx="28" cy="26" r="8" fill="#f59e0b"/>
+            <polygon points="14,56 38,32 58,56" fill="#059669"/>
+            <polygon points="40,56 58,38 72,56" fill="#047857"/>
+          </svg>`;
+        case "window_item":
+          return `<svg viewBox="0 0 115 110" width="100%" height="100%">
+            <rect x="6" y="6" width="103" height="98" rx="4" fill="${color}" stroke="#ffffff" stroke-width="6"/>
+            <line x1="57.5" y1="6" x2="57.5" y2="104" stroke="#ffffff" stroke-width="4"/>
+            <line x1="6" y1="55" x2="109" y2="55" stroke="#ffffff" stroke-width="4"/>
+          </svg>`;
+        case "curtain":
+          return `<svg viewBox="0 0 120 125" width="100%" height="100%">
+            <rect x="4" y="6" width="112" height="6" rx="3" fill="#44403c"/>
+            <path d="M10 12 L42 12 L34 118 L8 118 Z" fill="${color}" stroke="#1c1917" stroke-width="2"/>
+            <path d="M78 12 L110 12 L112 118 L86 118 Z" fill="${color}" stroke="#1c1917" stroke-width="2"/>
+          </svg>`;
+        default:
+          const def = findItemDef(defId);
+          return `<div style="width:100%;height:100%;background:${color};border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;border:2px solid #1c1917;">${def ? def.icon : "📦"}</div>`;
+      }
+    }
+
+    function renderStage() {
+      const rState = gameState.rooms[currentRoomId];
+      document.getElementById("stage-wall").style.background = rState.wall;
+      document.getElementById("stage-floor").style.background = rState.floor;
+
+      const layer = document.getElementById("stage-items-layer");
+      layer.innerHTML = "";
+
+      rState.items.forEach(item => {
+        const def = findItemDef(item.defId);
+        if (!def) return;
+
+        const el = document.createElement("div");
+        el.className = `placed-item ${item.uid === selectedItemUid ? "selected" : ""}`;
+        el.style.left = item.x + "px";
+        el.style.top = item.y + "px";
+        el.style.width = def.w * item.scale + "px";
+        el.style.height = def.h * item.scale + "px";
+        el.style.transform = item.flip ? "scaleX(-1)" : "none";
+        el.innerHTML = getItemSVG(item.defId, item.color);
+
+        // Pointer drag (մկնիկ + հեռախոսի touch)
+        el.onpointerdown = (e) => {
+          e.stopPropagation();
+          selectedItemUid = item.uid;
+          renderStage();
+          renderInspector();
+
+          const startX = e.clientX;
+          const startY = e.clientY;
+          const origX = item.x;
+          const origY = item.y;
+          let moved = false;
+
+          const onMove = (ev) => {
+            if (!moved) {
+              pushHistory();
+              moved = true;
+            }
+            const stage = document.getElementById("room-stage");
+            const maxX = stage.clientWidth - def.w * item.scale;
+            const maxY = stage.clientHeight - def.h * item.scale;
+            item.x = Math.max(0, Math.min(maxX, origX + (ev.clientX - startX)));
+            item.y = Math.max(0, Math.min(maxY, origY + (ev.clientY - startY)));
+            el.style.left = item.x + "px";
+            el.style.top = item.y + "px";
+          };
+
+          const onUp = () => {
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+            updateQuestStatus();
+          };
+
+          window.addEventListener("pointermove", onMove);
+          window.addEventListener("pointerup", onUp);
+        };
+
+        layer.appendChild(el);
+      });
+
+      updateQuestStatus();
+    }
+
+    // Ստեղնաշարի Delete կոճակով ջնջում
+    window.addEventListener("keydown", (e) => {
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedItemUid && currentRoomId) {
+        deleteSelectedItem();
+      }
+    });
+
+    function renderInspector() {
+      const box = document.getElementById("item-inspector");
+      const rState = gameState.rooms[currentRoomId];
+      const item = rState.items.find(i => i.uid === selectedItemUid);
+
+      if (!item) {
+        box.innerHTML = `<span style="color:var(--text-muted); font-size:0.86rem;">💡 Սեղմեք կամ քաշեք առարկան սենյակ՝ տեղադրելու համար։ Նշեք առարկան՝ գույնն ու չափը փոխելու համար։</span>`;
+        return;
+      }
+
+      const def = findItemDef(item.defId);
+      const dotsHTML = COLOR_PALETTE.map(c => `
+        <div class="color-dot ${item.color === c.hex ? "active" : ""}"
+             style="background:${c.hex};"
+             title="${c.name}"
+             onclick="changeSelectedColor('${c.hex}')"></div>
+      `).join("");
+
+      box.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px;">
+          <strong>${def.icon} ${def.name}</strong>
+          <div class="color-dots">${dotsHTML}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="btn" onclick="flipSelectedItem()">🔄 Պտտել</button>
+          <button class="btn" onclick="resizeSelectedItem(-0.15)">➖ Փոքր</button>
+          <button class="btn" onclick="resizeSelectedItem(0.15)">➕ Մեծ</button>
+          <button class="btn btn-danger" onclick="deleteSelectedItem()">🗑️ Ջնջել</button>
+        </div>
+      `;
+    }
+
+    function changeSelectedColor(hex) {
+      const item = gameState.rooms[currentRoomId].items.find(i => i.uid === selectedItemUid);
+      if (!item) return;
+      pushHistory();
+      item.color = hex;
+      playSound("pop");
+      renderStage();
+      renderInspector();
+    }
+
+    function flipSelectedItem() {
+      const item = gameState.rooms[currentRoomId].items.find(i => i.uid === selectedItemUid);
+      if (!item) return;
+      pushHistory();
+      item.flip = !item.flip;
+      playSound("pop");
+      renderStage();
+    }
+
+    function resizeSelectedItem(delta) {
+      const item = gameState.rooms[currentRoomId].items.find(i => i.uid === selectedItemUid);
+      if (!item) return;
+      pushHistory();
+      item.scale = Math.max(0.65, Math.min(1.6, +(item.scale + delta).toFixed(2)));
+      playSound("pop");
+      renderStage();
+    }
+
+    function deleteSelectedItem() {
+      const rState = gameState.rooms[currentRoomId];
+      const idx = rState.items.findIndex(i => i.uid === selectedItemUid);
+      if (idx === -1) return;
+      pushHistory();
+      const removed = rState.items.splice(idx, 1)[0];
+      const def = findItemDef(removed.defId);
+      if (def) gameState.money += Math.round(def.price * 0.8); // 80% վերադարձ
+      selectedItemUid = null;
+      playSound("delete");
+      updateTopStats();
+      renderStage();
+      renderInspector();
+    }
+
+    // Առաջադրանքի ստուգում
+    function checkQuestComplete(roomId) {
+      const meta = ROOMS_DATA.find(r => r.id === roomId);
+      const rState = gameState.rooms[roomId];
+      const counts = {};
+      rState.items.forEach(it => {
+        const def = findItemDef(it.defId);
+        if (def && def.tag) {
+          counts[def.tag] = (counts[def.tag] || 0) + 1;
+        }
+      });
+
+      for (const [tag, needed] of Object.entries(meta.quest.req)) {
+        if ((counts[tag] || 0) < needed) return false;
+      }
+      return true;
+    }
+
+    function updateQuestStatus() {
+      const meta = ROOMS_DATA.find(r => r.id === currentRoomId);
+      const done = checkQuestComplete(currentRoomId);
+      const qBox = document.getElementById("room-quest-box");
+      qBox.className = `quest-box ${done ? "completed" : ""}`;
+      qBox.textContent = done ? `✅ Առաջադրանքը կատարված է (${meta.quest.text})` : `📋 ${meta.quest.text}`;
+    }
+
+    // Ավտոմատ ոճավորում մեկ սեղմումով
+    function applyPresetStyle() {
+      const style = document.getElementById("preset-style-select").value;
+      if (!style) return;
+
+      const presets = {
+        modern: {
+          cost: 4200,
+          wall: "#e0f2fe",
+          floor: "linear-gradient(135deg, #f8fafc 25%, #e2e8f0 50%, #f8fafc 75%)",
+          items: [
+            { defId: "sofa", x: 140, y: 245, color: "#334155" },
+            { defId: "tv", x: 350, y: 185, color: "#1e293b" },
+            { defId: "rug", x: 180, y: 345, color: "#0284c7" },
+            { defId: "chandelier", x: 290, y: 8, color: "#f5f5f4" },
+            { defId: "plant", x: 510, y: 235, color: "#047857" }
+          ]
+        },
+        classic: {
+          cost: 4600,
+          wall: "#fef3c7",
+          floor: "repeating-linear-gradient(90deg, #d97706, #d97706 32px, #b45309 32px, #b45309 34px)",
+          items: [
+            { defId: "bed", x: 170, y: 235, color: "#c2410c" },
+            { defId: "wardrobe", x: 40, y: 170, color: "#b45309" },
+            { defId: "art", x: 220, y: 95, color: "#b45309" },
+            { defId: "chandelier", x: 280, y: 8, color: "#eab308" },
+            { defId: "rug", x: 190, y: 345, color: "#c2410c" }
+          ]
+        },
+        scandi: {
+          cost: 3900,
+          wall: "#d1fae5",
+          floor: "repeating-linear-gradient(90deg, #d97706, #d97706 32px, #b45309 32px, #b45309 34px)",
+          items: [
+            { defId: "table", x: 210, y: 255, color: "#f5f5f4" },
+            { defId: "chair", x: 145, y: 260, color: "#047857" },
+            { defId: "chair", x: 340, y: 260, color: "#047857" },
+            { defId: "plant", x: 460, y: 235, color: "#f5f5f4" },
+            { defId: "floor_lamp", x: 65, y: 195, color: "#f5f5f4" }
+          ]
+        },
+        loft: {
+          cost: 4500,
+          wall: "repeating-linear-gradient(0deg, #9a3412, #9a3412 14px, #7c2d12 14px, #7c2d12 16px)",
+          floor: "#cbd5e1",
+          items: [
+            { defId: "desk", x: 190, y: 250, color: "#334155" },
+            { defId: "chair", x: 230, y: 265, color: "#c2410c" },
+            { defId: "shelf", x: 60, y: 180, color: "#334155" },
+            { defId: "floor_lamp", x: 420, y: 195, color: "#334155" },
+            { defId: "rug", x: 200, y: 345, color: "#334155" }
+          ]
+        }
+      };
+
+      const chosen = presets[style];
+      if (!chosen) return;
+      if (gameState.money < chosen.cost) {
+        alert(`💸 Այս ոճը կիրառելու համար անհրաժեշտ է ${chosen.cost} ֏։`);
+        return;
+      }
+
+      pushHistory();
+      gameState.money -= chosen.cost;
+      const rState = gameState.rooms[currentRoomId];
+      rState.wall = chosen.wall;
+      rState.floor = chosen.floor;
+      rState.items = chosen.items.map((it, idx) => ({
+        uid: "preset_" + Date.now() + "_" + idx,
+        defId: it.defId,
+        x: it.x,
+        y: it.y,
+        color: it.color,
+        scale: 1,
+        flip: false
+      }));
+      rState.status = "progress";
+
+      playSound("win");
+      updateTopStats();
+      renderStage();
+      renderInspector();
+    }
+
+    // Սենյակի ավարտ և աստղերի հաշվարկ (1-3 աստղ)
+    function completeCurrentRoom() {
+      const rState = gameState.rooms[currentRoomId];
+      if (rState.items.length < 2) {
+        alert("Խնդրում ենք տեղադրել առնվազն 2 առարկա սենյակը ավարտելու համար։");
+        return;
+      }
+
+      const questOk = checkQuestComplete(currentRoomId);
+      const uniqueColors = new Set(rState.items.map(i => i.color)).size;
+
+      let stars = 1;
+      if (rState.items.length >= 3 && uniqueColors <= 4) stars = 2;
+      if (questOk && rState.items.length >= 4) stars = 3;
+
+      const prevStars = rState.starsEarned || 0;
+      const starDiff = Math.max(0, stars - prevStars);
+      gameState.stars += starDiff;
+      rState.starsEarned = Math.max(prevStars, stars);
+      rState.status = "done";
+
+      const reward = stars * 1200 + (questOk ? 1000 : 0);
+      gameState.money += reward;
+
+      playSound("win");
+      saveGame();
+      updateTopStats();
+
+      document.getElementById("modal-stars").textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+      document.getElementById("modal-reward").textContent = reward.toLocaleString();
+      document.getElementById("modal-feedback").textContent = questOk
+        ? "Հիանալի աշխատանք՝ ներդաշնակ գույներ և կատարված առաջադրանք։"
+        : "Լավ դիզայն է, բայց փորձեք կատարել նաև սենյակի առաջադրանքը՝ 3 աստղ ստանալու համար։";
+
+      document.getElementById("completion-modal").classList.add("open");
+    }
+
+    function closeModalAndReturn() {
+      document.getElementById("completion-modal").classList.remove("open");
+      backToHouse();
+    }
+
+    /* ============================================================================
+       6. ԴՐՍԻ ՀԱՏՎԱԾԻ ԵՎ ԱՅԳՈՒ ԽՄԲԱԳՐԻՉ (HTML5 CANVAS + ԵՂԱՆԱԿ + PNG EXPORT)
+       ============================================================================ */
+    let extAnimId = null;
+    let particles = [];
+
+    function goToExterior() {
+      playSound("win");
+      document.getElementById("house-overview").classList.add("view-hidden");
+      document.getElementById("exterior-editor").classList.remove("view-hidden");
+      initWeatherParticles();
+      startExteriorLoop();
+    }
+
+    function backToHouseFromExterior() {
+      playSound("pop");
+      cancelAnimationFrame(extAnimId);
+      document.getElementById("exterior-editor").classList.add("view-hidden");
+      document.getElementById("house-overview").classList.remove("view-hidden");
+      renderHouseOverview();
+    }
+
+    function setExtProp(key, val, btn) {
+      gameState.exterior[key] = val;
+      btn.parentElement.querySelectorAll(".ext-chip").forEach(c => c.classList.remove("active"));
+      btn.classList.add("active");
+      if (key === "weather") initWeatherParticles();
+      playSound("pop");
+      saveGame();
+    }
+
+    function toggleExtBool(key, btn) {
+      gameState.exterior[key] = !gameState.exterior[key];
+      btn.classList.toggle("active", gameState.exterior[key]);
+      playSound("pop");
+      saveGame();
+    }
+
+    function initWeatherParticles() {
+      particles = [];
+      for (let i = 0; i < 90; i++) {
+        particles.push({
+          x: Math.random() * 920,
+          y: Math.random() * 560,
+          speed: 2 + Math.random() * 5,
+          size: 2 + Math.random() * 3
+        });
+      }
+    }
+
+    function drawExteriorScene() {
+      const canvas = document.getElementById("exterior-canvas");
+      const ctx = canvas.getContext("2d");
+      const ext = gameState.exterior;
+      const W = canvas.width;
+      const H = canvas.height;
+
+      // 1. Երկինք (Ցերեկ / Երեկո / Գիշեր)
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.68);
+      if (ext.time === "day") {
+        skyGrad.addColorStop(0, "#38bdf8");
+        skyGrad.addColorStop(1, "#bae6fd");
+      } else if (ext.time === "evening") {
+        skyGrad.addColorStop(0, "#312e81");
+        skyGrad.addColorStop(0.55, "#db2777");
+        skyGrad.addColorStop(1, "#f59e0b");
+      } else {
+        skyGrad.addColorStop(0, "#020617");
+        skyGrad.addColorStop(1, "#1e1b4b");
+      }
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Արև կամ Լուսին և աստղեր
+      if (ext.time === "night") {
+        ctx.fillStyle = "#fef08a";
+        ctx.beginPath();
+        ctx.arc(780, 90, 32, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        for (let i = 0; i < 25; i++) {
+          ctx.fillRect((i * 137) % W, (i * 53) % 220, 2.5, 2.5);
+        }
+      } else {
+        ctx.fillStyle = ext.time === "day" ? "#fde047" : "#fb923c";
+        ctx.beginPath();
+        ctx.arc(780, ext.time === "day" ? 85 : 220, 38, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 2. Սարեր և բակի խոտածածկ
+      ctx.fillStyle = ext.time === "night" ? "#1e293b" : "#94a3b8";
+      ctx.beginPath();
+      ctx.moveTo(0, 360);
+      ctx.lineTo(180, 220);
+      ctx.lineTo(390, 360);
+      ctx.lineTo(620, 200);
+      ctx.lineTo(920, 360);
+      ctx.fill();
+
+      ctx.fillStyle = ext.weather === "snow" ? "#f1f5f9" : (ext.time === "night" ? "#14532d" : "#22c55e");
+      ctx.fillRect(0, 355, W, H - 355);
+
+      // 3. Ճանապարհ դեպի տուն
+      if (ext.path) {
+        ctx.fillStyle = "#94a3b8";
+        ctx.beginPath();
+        ctx.moveTo(415, 380);
+        ctx.lineTo(485, 380);
+        ctx.lineTo(540, 560);
+        ctx.lineTo(360, 560);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 4. Լողավազան
+      if (ext.pool) {
+        ctx.fillStyle = "#e2e8f0";
+        ctx.fillRect(60, 430, 210, 95);
+        ctx.fillStyle = ext.time === "night" ? "#0369a1" : "#38bdf8";
+        ctx.fillRect(70, 440, 190, 75);
+      }
+
+      // 5. Տան հիմնական շենք (Ճակատ)
+      const houseX = 270;
+      const houseY = 175;
+      const houseW = 360;
+      const houseH = 210;
+
+      ctx.fillStyle = ext.facadeColor;
+      ctx.fillRect(houseX, houseY, houseW, houseH);
+      ctx.strokeStyle = "#44403c";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(houseX, houseY, houseW, houseH);
+
+      // Կտուր
+      ctx.fillStyle = ext.roofColor;
+      ctx.beginPath();
+      ctx.moveTo(houseX - 25, houseY);
+      ctx.lineTo(houseX + houseW / 2, houseY - 85);
+      ctx.lineTo(houseX + houseW + 25, houseY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Ավտոտնակ
+      if (ext.garage) {
+        ctx.fillStyle = ext.facadeColor;
+        ctx.fillRect(houseX + houseW, houseY + 75, 135, 135);
+        ctx.strokeRect(houseX + houseW, houseY + 75, 135, 135);
+        // Ավտոտնակի դարպաս
+        ctx.fillStyle = "#64748b";
+        ctx.fillRect(houseX + houseW + 18, houseY + 115, 98, 95);
+      }
+
+      // Պատուհաններ (Գիշերը վառվում են տաք դեղին լույսով)
+      const winLit = ext.time !== "day" && ext.lights;
+      const winColor = winLit ? "#fef08a" : "#bae6fd";
+      const windows = [
+        [houseX + 35, houseY + 28],
+        [houseX + 150, houseY + 28],
+        [houseX + 265, houseY + 28],
+        [houseX + 35, houseY + 120],
+        [houseX + 265, houseY + 120]
+      ];
+      windows.forEach(([wx, wy]) => {
+        ctx.fillStyle = winColor;
+        ctx.fillRect(wx, wy, 58, 52);
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(wx, wy, 58, 52);
+        if (winLit) {
+          ctx.shadowColor = "#fde047";
+          ctx.shadowBlur = 18;
+          ctx.strokeRect(wx, wy, 58, 52);
+          ctx.shadowBlur = 0;
+        }
+      });
+
+      // Պատշգամբ
+      if (ext.balcony) {
+        ctx.fillStyle = "#78350f";
+        ctx.fillRect(houseX + 135, houseY + 82, 90, 12);
+        ctx.strokeStyle = "#451a03";
+        for (let bx = houseX + 140; bx <= houseX + 220; bx += 12) {
+          ctx.beginPath();
+          ctx.moveTo(bx, houseY + 62);
+          ctx.lineTo(bx, houseY + 82);
+          ctx.stroke();
+        }
+      }
+
+      // Մուտքի դուռ
+      ctx.fillStyle = "#7c2d12";
+      ctx.fillRect(houseX + 155, houseY + 125, 50, 85);
+      ctx.fillStyle = "#facc15";
+      ctx.beginPath();
+      ctx.arc(houseX + 195, houseY + 170, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 6. Այգու տարրեր (Ծառեր, ծաղկանոց, ցայտաղբյուր, նստարան, խաղահրապարակ)
+      if (ext.trees) {
+        [135, 845].forEach(tx => {
+          ctx.fillStyle = "#78350f";
+          ctx.fillRect(tx - 8, 310, 16, 65);
+          ctx.fillStyle = ext.weather === "snow" ? "#e2e8f0" : "#15803d";
+          ctx.beginPath();
+          ctx.arc(tx, 290, 38, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      if (ext.flowers) {
+        const fColors = ["#ef4444", "#f59e0b", "#ec4899", "#a855f7"];
+        for (let fx = 285; fx <= 610; fx += 24) {
+          if (fx > 410 && fx < 490) continue;
+          ctx.fillStyle = fColors[fx % fColors.length];
+          ctx.beginPath();
+          ctx.arc(fx, 392, 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      if (ext.fountain) {
+        ctx.fillStyle = "#cbd5e1";
+        ctx.beginPath();
+        ctx.ellipse(720, 465, 45, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.ellipse(720, 465, 36, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(716, 435, 8, 30);
+      }
+
+      if (ext.bench) {
+        ctx.fillStyle = "#9a3412";
+        ctx.fillRect(580, 460, 68, 12);
+        ctx.fillRect(586, 472, 6, 16);
+        ctx.fillRect(636, 472, 6, 16);
+      }
+
+      if (ext.playground) {
+        ctx.strokeStyle = "#dc2626";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(110, 395);
+        ctx.lineTo(135, 330);
+        ctx.lineTo(160, 395);
+        ctx.stroke();
+        ctx.fillStyle = "#facc15";
+        ctx.fillRect(124, 370, 22, 6);
+      }
+
+      // Ցանկապատ
+      if (ext.fence) {
+        ctx.fillStyle = "#f8fafc";
+        for (let x = 15; x < W - 15; x += 26) {
+          if (x > 370 && x < 530) continue; // Դարպասի բացվածք
+          ctx.fillRect(x, 515, 12, 38);
+        }
+        ctx.fillRect(15, 526, 355, 6);
+        ctx.fillRect(530, 526, 375, 6);
+      }
+
+      // 7. Եղանակի անիմացիա (Անձրև / Ձյուն)
+      if (ext.weather !== "clear") {
+        ctx.fillStyle = ext.weather === "rain" ? "#93c5fd" : "#ffffff";
+        particles.forEach(p => {
+          p.y += p.speed;
+          if (ext.weather === "rain") p.x -= 1.2;
+          if (p.y > H) {
+            p.y = 0;
+            p.x = Math.random() * W;
+          }
+          if (ext.weather === "rain") {
+            ctx.fillRect(p.x, p.y, 2, 11);
+          } else {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      }
+    }
+
+    function startExteriorLoop() {
+      function loop() {
+        drawExteriorScene();
+        extAnimId = requestAnimationFrame(loop);
+      }
+      loop();
+    }
+
+    // Ավարտված տան նկարի ներբեռնում PNG ձևաչափով
+    function downloadExteriorPNG() {
+      playSound("win");
+      const canvas = document.getElementById("exterior-canvas");
+      const link = document.createElement("a");
+      link.download = "erazanqi-tun.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+
+    /* ============================================================================
+       7. ԽԱՂԻ ՄԵԿՆԱՐԿ
+       ============================================================================ */
+    loadGame();
+    renderHouseOverview();
+  </script>
+</body>
+</html>
